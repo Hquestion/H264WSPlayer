@@ -8,8 +8,14 @@ const {
 } = require("customize-cra");
 const path = require('path');
 
+const rewiredMap = () => config => {
+    config.devtool = config.mode === 'development' ? 'cheap-module-source-map' : false;
+    return config;
+};
+
 module.exports = {
     webpack: override(
+        rewiredMap(),
         // usual webpack plugin
         disableEsLint(),
         addWebpackAlias({

@@ -1,9 +1,11 @@
-const LOCAL_WS_SERVER_URL = "ws://10.10.101.44:3000";
-const useAbsoluteHost = true;
+const LOCAL_WS_SERVER_URL = "ws://localhost:3000";
+const useAbsoluteHost = false;
 const ABSOLUTE_HOST = '10.10.105.109'
 const SERVER_HOST = useAbsoluteHost ? ABSOLUTE_HOST : window.location.host;
 let ws: any;
 let isConnecting = false;
+let lockReconnect = false;
+let tt: any | null = null;
 
 export function sendMessage(message: string | Record<any, any>) {
     if (!ws) {
@@ -17,6 +19,20 @@ export function sendMessage(message: string | Record<any, any>) {
 }
 
 function socketInit(onReceiveData: (buffer: Uint8Array) => void) {
+
+    function reconnect() {
+        if (lockReconnect) {
+            return;
+        }
+        lockReconnect = true;
+        //没连接上会一直重连，设置延迟避免请求过多
+        tt && clearTimeout(tt);
+        tt = setTimeout(function () {
+            socketInit(onReceiveData);
+            lockReconnect = false;
+        }, 4000);
+    }
+
     let pktnum = 0;
     if (isConnecting) return;
     isConnecting = true;
@@ -56,10 +72,12 @@ function socketInit(onReceiveData: (buffer: Uint8Array) => void) {
 
         ws.onerror = () => {
             console.error('WS连接异常，尝试重连');
+
         };
 
         ws.onclose = () => {
             console.error('WS连接断开，尝试重连');
+            reconnect();
         };
         return ws;
     });

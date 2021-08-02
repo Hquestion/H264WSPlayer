@@ -43,23 +43,23 @@
  * If available the content is rendered using WebGL.
  */
   function YUVCanvas(parOptions) {
-    
+
     parOptions = parOptions || {};
-    
+
     this.canvasElement = parOptions.canvas || document.createElement("canvas");
     this.contextOptions = parOptions.contextOptions;
-    
+
     this.type = parOptions.type || "yuv420";
-    
+
     this.customYUV444 = parOptions.customYUV444;
-    
+
     this.conversionType = parOptions.conversionType || "rec601";
 
     this.width = parOptions.width || 640;
     this.height = parOptions.height || 320;
-    
+
     this.animationTime = parOptions.animationTime || 0;
-    
+
     this.canvasElement.width = this.width;
     this.canvasElement.height = this.height;
 
@@ -70,7 +70,7 @@
       this.initBuffers();
       this.initTextures();
     };
-    
+
 
 /**
  * Draw the next output picture using WebGL
@@ -81,27 +81,27 @@
         var texturePosBuffer = this.texturePosBuffer;
         var uTexturePosBuffer = this.uTexturePosBuffer;
         var vTexturePosBuffer = this.vTexturePosBuffer;
-        
+
         var yTextureRef = this.yTextureRef;
         var uTextureRef = this.uTextureRef;
         var vTextureRef = this.vTextureRef;
-        
+
         var yData = par.yData;
         var uData = par.uData;
         var vData = par.vData;
-        
+
         var width = this.width;
         var height = this.height;
-        
+
         var yDataPerRow = par.yDataPerRow || width;
         var yRowCnt     = par.yRowCnt || height;
-        
+
         var uDataPerRow = par.uDataPerRow || (width / 2);
         var uRowCnt     = par.uRowCnt || (height / 2);
-        
+
         var vDataPerRow = par.vDataPerRow || uDataPerRow;
         var vRowCnt     = par.vRowCnt || uRowCnt;
-        
+
         gl.viewport(0, 0, width, height);
 
         var tTop = 0;
@@ -112,7 +112,7 @@
 
         gl.bindBuffer(gl.ARRAY_BUFFER, texturePosBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, texturePosValues, gl.DYNAMIC_DRAW);
-        
+
         if (this.customYUV444){
           tBottom = height / uRowCnt;
           tRight = width / uDataPerRow;
@@ -124,8 +124,8 @@
 
         gl.bindBuffer(gl.ARRAY_BUFFER, uTexturePosBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, uTexturePosValues, gl.DYNAMIC_DRAW);
-        
-        
+
+
         if (this.customYUV444){
           tBottom = height / vRowCnt;
           tRight = width / vDataPerRow;
@@ -137,8 +137,8 @@
 
         gl.bindBuffer(gl.ARRAY_BUFFER, vTexturePosBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, vTexturePosValues, gl.DYNAMIC_DRAW);
-        
 
+        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, yTextureRef);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, yDataPerRow, yRowCnt, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, yData);
@@ -151,21 +151,21 @@
         gl.bindTexture(gl.TEXTURE_2D, vTextureRef);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, vDataPerRow, vRowCnt, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, vData);
 
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); 
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       };
-      
+
     }else if (this.type === "yuv422"){
       this.drawNextOuptutPictureGL = function(par) {
         var gl = this.contextGL;
         var texturePosBuffer = this.texturePosBuffer;
-        
+
         var textureRef = this.textureRef;
-        
+
         var data = par.data;
-        
+
         var width = this.width;
         var height = this.height;
-        
+
         var dataPerRow = par.dataPerRow || (width * 2);
         var rowCnt     = par.rowCnt || height;
 
@@ -179,17 +179,17 @@
 
         gl.bindBuffer(gl.ARRAY_BUFFER, texturePosBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, texturePosValues, gl.DYNAMIC_DRAW);
-        
+
         gl.uniform2f(gl.getUniformLocation(this.shaderProgram, 'resolution'), dataPerRow, height);
-        
+
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, textureRef);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, dataPerRow, rowCnt, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, data);
 
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); 
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       };
     };
-    
+
   };
 
   /**
@@ -224,7 +224,7 @@
 
       if(!gl || typeof gl.getParameter !== "function") {
         gl = null;
-      }    
+      }
 
       ++nameIndex;
     };
@@ -241,7 +241,7 @@ YUVCanvas.prototype.initProgram = function() {
   // vertex shader is the same for all types
   var vertexShaderScript;
   var fragmentShaderScript;
-  
+
   if (this.type === "yuv420"){
 
     vertexShaderScript = [
@@ -261,7 +261,7 @@ YUVCanvas.prototype.initProgram = function() {
       '  vTextureCoord = vTexturePos.xy;',
       '}'
     ].join('\n');
-    
+
     fragmentShaderScript = [
       'precision highp float;',
       'varying highp vec2 textureCoord;',
@@ -279,7 +279,7 @@ YUVCanvas.prototype.initProgram = function() {
       '  gl_FragColor = vec4(y, u, v, 1) * YUV2RGB;',
       '}'
     ].join('\n');
-    
+
   }else if (this.type === "yuv422"){
     vertexShaderScript = [
       'attribute vec4 vertexPos;',
@@ -292,7 +292,7 @@ YUVCanvas.prototype.initProgram = function() {
       '  textureCoord = texturePos.xy;',
       '}'
     ].join('\n');
-    
+
     fragmentShaderScript = [
       'precision highp float;',
       'varying highp vec2 textureCoord;',
@@ -301,7 +301,7 @@ YUVCanvas.prototype.initProgram = function() {
       'uniform mat4 YUV2RGB;',
 
       'void main(void) {',
-      
+
       '  highp float texPixX = 1.0 / resolution.x;',
       '  highp float logPixX = 2.0 / resolution.x;', // half the resolution of the texture
       '  highp float logHalfPixX = 4.0 / resolution.x;', // half of the logical resolution so every 4th pixel
@@ -310,7 +310,7 @@ YUVCanvas.prototype.initProgram = function() {
       '  highp float y = texture2D(sampler, vec2((logPixX * steps) + texPixX, textureCoord.y)).r;',
       '  highp float u = texture2D(sampler, vec2((logHalfPixX * uvSteps), textureCoord.y)).r;',
       '  highp float v = texture2D(sampler, vec2((logHalfPixX * uvSteps) + texPixX + texPixX, textureCoord.y)).r;',
-      
+
       //'  highp float y = texture2D(sampler,  textureCoord).r;',
       //'  gl_FragColor = vec4(y, u, v, 1) * YUV2RGB;',
       '  gl_FragColor = vec4(y, u, v, 1.0) * YUV2RGB;',
@@ -382,24 +382,24 @@ YUVCanvas.prototype.initBuffers = function() {
   var vertexPosRef = gl.getAttribLocation(program, 'vertexPos');
   gl.enableVertexAttribArray(vertexPosRef);
   gl.vertexAttribPointer(vertexPosRef, 2, gl.FLOAT, false, 0, 0);
-  
+
   if (this.animationTime){
-    
+
     var animationTime = this.animationTime;
     var timePassed = 0;
     var stepTime = 15;
-  
+
     var aniFun = function(){
-      
+
       timePassed += stepTime;
       var mul = ( 1 * timePassed ) / animationTime;
-      
+
       if (timePassed >= animationTime){
         mul = 1;
       }else{
         setTimeout(aniFun, stepTime);
       };
-      
+
       var neg = -1 * mul;
       var pos = 1 * mul;
 
@@ -410,17 +410,17 @@ YUVCanvas.prototype.initBuffers = function() {
       var vertexPosRef = gl.getAttribLocation(program, 'vertexPos');
       gl.enableVertexAttribArray(vertexPosRef);
       gl.vertexAttribPointer(vertexPosRef, 2, gl.FLOAT, false, 0, 0);
-      
+
       try{
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       }catch(e){};
 
     };
     aniFun();
-    
+
   };
 
-  
+
 
   var texturePosBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, texturePosBuffer);
@@ -442,8 +442,8 @@ YUVCanvas.prototype.initBuffers = function() {
     gl.vertexAttribPointer(uTexturePosRef, 2, gl.FLOAT, false, 0, 0);
 
     this.uTexturePosBuffer = uTexturePosBuffer;
-    
-    
+
+
     var vTexturePosBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vTexturePosBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([1, 0, 0, 0, 1, 1, 0, 1]), gl.STATIC_DRAW);
@@ -480,7 +480,7 @@ YUVCanvas.prototype.initTextures = function() {
     var vSamplerRef = gl.getUniformLocation(program, 'vSampler');
     gl.uniform1i(vSamplerRef, 2);
     this.vTextureRef = vTextureRef;
-    
+
   }else if (this.type === "yuv422"){
     // only one texture for 422
     var textureRef = this.initTexture();
@@ -545,7 +545,7 @@ YUVCanvas.prototype.drawNextOuptutPictureRGBA = function(width, height, cropping
         ctx.putImageData(imageData, -croppingParams.left, -croppingParams.top, 0, 0, croppingParams.width, croppingParams.height);
     }
 };
-  
+
   return YUVCanvas;
-  
+
 }));
