@@ -23,6 +23,16 @@ declare module '@/utils/YUVCanvas' {
     }
 }
 
+declare module 'yuv-canvas' {
+    export function attach(canvas: any, options?: any) {}
+}
+
+declare module 'yuv-buffer' {
+    export function frame(e: any, y?: any, u?: any, v?: any) {}
+    export function format(e: any) {}
+    export type YUVFormat = any;
+}
+
 interface Document {
     webkitHidden: boolean;
     mozHidden: boolean;

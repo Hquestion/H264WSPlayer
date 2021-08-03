@@ -11480,3 +11480,13 @@ yocto-queue@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/yocto-queue/-/yocto-queue-0.1.0.tgz#0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b"
   integrity sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==
+
+yuv-buffer@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.npm.taobao.org/yuv-buffer/download/yuv-buffer-1.0.0.tgz#09a454858d74df2bc31cd588edd70ffcb86bfc9a"
+  integrity sha1-CaRUhY103yvDHNWI7dcP/Lhr/Jo=
+
+yuv-canvas@^1.2.7:
+  version "1.2.7"
+  resolved "https://registry.nlark.com/yuv-canvas/download/yuv-canvas-1.2.7.tgz#5fd9fe080e56942563d4330495b2c5fdcecf4c44"
+  integrity sha1-X9n+CA5WlCVj1DMElbLF/c7PTEQ=

@@ -74,20 +74,20 @@ export default class YUVCanvas {
                 var height = this.height;
 
                 var yDataPerRow = par.yDataPerRow || width;
-                var yRowCnt     = par.yRowCnt || height;
+                var yRowCnt     = par.yRowCnt || (height - 1);
 
                 var uDataPerRow = par.uDataPerRow || (width / 2);
-                var uRowCnt     = par.uRowCnt || (height / 2);
+                var uRowCnt     = par.uRowCnt || ((height - 1) / 2);
 
                 var vDataPerRow = par.vDataPerRow || uDataPerRow;
                 var vRowCnt     = par.vRowCnt || uRowCnt;
 
-                gl?.viewport(0, 0, width, height);
+                gl?.viewport(0, 0, width + 2, height);
 
                 var tTop = 0;
                 var tLeft = 0;
                 var tBottom = height / yRowCnt;
-                var tRight = width / yDataPerRow;
+                var tRight = (width - 2) / yDataPerRow;
                 var texturePosValues = new Float32Array([tRight, tTop, tLeft, tTop, tRight, tBottom, tLeft, tBottom]);
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, texturePosBuffer);
@@ -118,7 +118,7 @@ export default class YUVCanvas {
                 gl.bindBuffer(gl.ARRAY_BUFFER, vTexturePosBuffer);
                 gl.bufferData(gl.ARRAY_BUFFER, vTexturePosValues, gl.DYNAMIC_DRAW);
 
-
+                gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
                 gl.activeTexture(gl.TEXTURE0);
                 gl.bindTexture(gl.TEXTURE_2D, yTextureRef);
                 gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, yDataPerRow, yRowCnt, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, yData);
