@@ -28,3 +28,8 @@ yarn run build
 ## TODO
 
 - Add emscripten build script with docker
+
+## Useful Links
+
+- [https://stackoverflow.com/questions/51582282/error-when-creating-textures-in-webgl-with-the-rgb-format](https://stackoverflow.com/questions/51582282/error-when-creating-textures-in-webgl-with-the-rgb-format)
+
