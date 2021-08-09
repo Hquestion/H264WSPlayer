@@ -1,11 +1,15 @@
 const LOCAL_WS_SERVER_URL = "ws://localhost:3000";
 const useAbsoluteHost = false;
 const ABSOLUTE_HOST = '10.10.105.109'
-const SERVER_HOST = useAbsoluteHost ? ABSOLUTE_HOST : window.location.host;
+const SERVER_HOST = useAbsoluteHost ? ABSOLUTE_HOST : window.location.hostname;
 let ws: any;
 let isConnecting = false;
 let lockReconnect = false;
 let tt: any | null = null;
+let onReceiveDataCallback: (buffer: Uint8Array) => void | undefined;
+
+const MAX_RETRY = 10;
+let tryTimes = 0;
 
 export function sendMessage(message: string | Record<any, any>) {
     if (!ws) {
@@ -15,26 +19,36 @@ export function sendMessage(message: string | Record<any, any>) {
     if (typeof message === 'object') {
         message = JSON.stringify(message);
     }
-    ws.send(message);
+    if (ws.readyState === 1) {
+        ws.send(message);
+    }
 }
 
-function socketInit(onReceiveData: (buffer: Uint8Array) => void) {
-
-    function reconnect() {
-        if (lockReconnect) {
-            return;
-        }
-        lockReconnect = true;
-        //没连接上会一直重连，设置延迟避免请求过多
-        tt && clearTimeout(tt);
-        tt = setTimeout(function () {
-            socketInit(onReceiveData);
-            lockReconnect = false;
-        }, 4000);
+function reconnect() {
+    if (tryTimes > MAX_RETRY) {
+        console.error(`达到最大重连尝试次数${MAX_RETRY}，取消此次重连操作`);
+        return;
     }
+    if (lockReconnect) {
+        return;
+    }
+    lockReconnect = true;
+    //没连接上会一直重连，设置延迟避免请求过多
+    tt && clearTimeout(tt);
+    tt = setTimeout(function () {
+        tryTimes++;
+        socketInit(onReceiveDataCallback)?.finally(() => {
+            lockReconnect = false;
+        });
+    }, 3000);
+}
+
+function socketInit(onReceiveData: (buffer: Uint8Array) => void): Promise<any> {
+
+    onReceiveDataCallback = onReceiveData;
 
     let pktnum = 0;
-    if (isConnecting) return;
+    if (isConnecting) return Promise.reject(undefined);
     isConnecting = true;
     return fetch('/ws').then(function (response) {
         return response.json();
@@ -48,10 +62,16 @@ function socketInit(onReceiveData: (buffer: Uint8Array) => void) {
         console.warn('获取ws地址异常，使用默认地址:', LOCAL_WS_SERVER_URL);
         return LOCAL_WS_SERVER_URL;
     }).then(url => {
-        ws = new WebSocket(url);
-        ws.binaryType = "arraybuffer";
-
+        try {
+            ws = new WebSocket(url);
+            ws.binaryType = "arraybuffer";
+        }catch (e) {
+            reconnect();
+            throw e;
+        }
         ws.onopen = () => {
+            isConnecting = false;
+            tryTimes = 0;
             console.log("Connected to " + url);
             // 发送系统信息
             sendMessage({
@@ -71,11 +91,13 @@ function socketInit(onReceiveData: (buffer: Uint8Array) => void) {
         };
 
         ws.onerror = () => {
-            console.error('WS连接异常，尝试重连');
-
+            isConnecting = false;
+            console.error('error: WS连接异常，尝试重连');
+            reconnect();
         };
 
         ws.onclose = () => {
+            isConnecting = false;
             console.error('WS连接断开，尝试重连');
             reconnect();
         };
