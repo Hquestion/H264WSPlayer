@@ -22,7 +22,9 @@
     "start": "cross-env PORT=3003 react-app-rewired start",
     "build": "react-app-rewired build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "build:libav:win": "docker run -it -v %cd%:/src emscripten/emsdk /bin/bash /src/build-libav.sh",
+    "build:libav:linux": "docker run -it -v `pwd`:/src emscripten/emsdk /bin/bash /src/build-libav.sh"
   },
   "eslintConfig": {
     "extends": [
