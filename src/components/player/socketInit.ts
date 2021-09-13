@@ -1,6 +1,7 @@
 const LOCAL_WS_SERVER_URL = "ws://localhost:3000";
-const useAbsoluteHost = false;
-const ABSOLUTE_HOST = '10.10.105.109'
+// 开发环境连接服务器时，通过反向代理转发http请求，使用绝对地址连接websocket，生产环境通过location获取
+const useAbsoluteHost = process.env.NODE_ENV === 'production' ? false : true;
+const ABSOLUTE_HOST = '10.10.107.253'
 const SERVER_HOST = useAbsoluteHost ? ABSOLUTE_HOST : window.location.hostname;
 let ws: any;
 let isConnecting = false;
@@ -65,7 +66,7 @@ function socketInit(onReceiveData: (buffer: Uint8Array) => void): Promise<any> {
         try {
             ws = new WebSocket(url);
             ws.binaryType = "arraybuffer";
-        }catch (e) {
+        } catch (e) {
             reconnect();
             throw e;
         }

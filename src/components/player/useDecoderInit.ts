@@ -15,7 +15,7 @@ function useDecoderInit(onPictureReady: onPictureReady, onNeedMoreData: () => an
                 switch (message.type) {
                     case 'pictureReady':
                         onPictureReady(message);
-                        break
+                        break;
                     case 'needMoreData':
                         onNeedMoreData();
                         break;

@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import usePlayerInit from "./usePlayerInit";
 import socketInit from "./socketInit";
 import useDecoderInit from "./useDecoderInit";
-import { isDocHidden } from "../../tools/helper";
+import { isDocHidden, isIDR } from "../../tools/helper";
 import useReverseControl from "./useReverseControl";
 
 function Player() {
@@ -15,9 +15,15 @@ function Player() {
     const h264samples: Uint8Array[] = [];
     const videoStreamId = 1;
 
-    const onReceiveBuffer = function(data: Uint8Array) {
+    const onReceiveBuffer = function (data: Uint8Array) {
         if (!isDocHidden()) {
-            h264samples.push(data)
+            if (h264samples.length > 4 && isIDR(data)) {
+                console.error('积压了5帧以上，且接收到I帧，放弃之前所有帧');
+                h264samples.length = 0;
+            }
+            h264samples.push(data);
+        } else if (isIDR(data)) {
+            h264samples.push(data);
         }
     };
 
@@ -37,7 +43,7 @@ function Player() {
         // 解码失败
     }
 
-    function decode (h264Nal: Uint8Array) {
+    function decode(h264Nal: Uint8Array) {
         // 发送到worker中进行解码
         tinyH264Worker.current?.postMessage({
             type: 'decode',
@@ -48,7 +54,7 @@ function Player() {
         }, [h264Nal.buffer]);
     }
 
-    function scheduleDecode () {
+    function scheduleDecode() {
         requestAnimationFrame(() => {
             scheduleDecode();
         });
@@ -64,7 +70,7 @@ function Player() {
         decode(nextFrame);
     }
 
-    function release () {
+    function release() {
         if (tinyH264Worker) {
             tinyH264Worker.current?.postMessage({ type: 'release', renderStateId: videoStreamId });
         }
@@ -74,6 +80,7 @@ function Player() {
 
     return (
         <div className="mirror-player-wrapper" ref={containerRef}>
+            {/* <div style={{ position: 'absolute', left: '10px', top: '10px', color: '#f00', fontSize: '40px' }}>当前帧队列：{h264samples.length}</div> */}
             <canvas ref={canvas} className="mirror-player" />
         </div>
     )

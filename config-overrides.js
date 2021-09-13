@@ -38,7 +38,7 @@ module.exports = {
         (config) => {
             config.proxy = {
                 '/ws': {
-                    target: 'http://localhost:3000',
+                    target: 'http://10.10.107.253:8080',
                     changeOrigin: true,
                     ws: true,
                 }

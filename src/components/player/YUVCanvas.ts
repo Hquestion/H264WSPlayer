@@ -117,6 +117,7 @@ export default class YUVCanvas {
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, vTexturePosBuffer);
                 gl.bufferData(gl.ARRAY_BUFFER, vTexturePosValues, gl.DYNAMIC_DRAW);
+                gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
                 gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
                 gl.activeTexture(gl.TEXTURE0);
